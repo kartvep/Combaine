@@ -34,3 +34,9 @@ nosetests.xml
 .mr.developer.cfg
 .project
 .pydevproject
+*.pyc
+*.pyo
+
+*.swp
+*.swo
+build/*
