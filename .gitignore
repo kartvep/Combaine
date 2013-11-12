@@ -36,6 +36,7 @@ nosetests.xml
 .pydevproject
 *.pyc
 *.pyo
+*._*
 
 *.swp
 *.swo
