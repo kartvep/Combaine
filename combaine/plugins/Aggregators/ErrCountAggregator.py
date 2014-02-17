@@ -7,7 +7,6 @@ from collections import defaultdict
 
 import sys
 sys.path.append('/usr/lib')
-
 from jclient import config
 from jclient import jobs
 
@@ -17,12 +16,21 @@ class ErrCountAggregator(RawAbstractAggregator):
         self.logger = CommonLogger()
         super(ErrCountAggregator, self).__init__()
         self.name = config['name']
-        self.q_head = "SELECT http_host, SUBSTRING_INDEX(geturl, '?', 1), COUNT(*) from %TABLENAME%"
-        self.q_tail = "GROUP BY http_host, SUBSTRING_INDEX(geturl, '?', 1)"
-        self.q_blacklist = " and ".join(["http_host != '%(i)s' and SUBSTRING_INDEX(geturl, '?', 1) != '%(i)s'" % {'i': i} 
+
+        self.q_dict = {"http_host": config["request"]["http_host_field"],
+                      "geturl" : "SUBSTRING_INDEX(%s, '?', 1)" % config["request"]["geturl_field"]}
+        self.q_host_url = "%(http_host)s, %(geturl)s" % self_q_dict
+        self.q_head = "SELECT %s, COUNT(*) from %TABLENAME%" % self.q_host_url
+        self.q_tail = "GROUP BY %s" % self.q_host_url
+
+        mk_q_dict = lambda x: x.update(self.q_dict) or x
+        self.q_blacklist = " and ".join(["%(http_host)s != '%(i)s' and %(geturl)s != '%(i)s'" % 
+                                         mk_q_dict({'i': i})
                                          for i in config["blacklist"]])
-        self.check_name = config["monitoring"]["name"] # name of juggler event
-        self.check_code = tuple(config["monitoring"]["code"]) # response code >= low and < high
+        # name of juggler event
+        self.check_name = config["monitoring"]["name"] 
+        # response code >= low and < high
+        self.check_code = tuple(config["monitoring"]["code"]) 
         self._limits = tuple(config["limits"].pop("default"))
         self.limits = dict([ (key, tuple(val)) for key, val in config["limits"].items() ])
 
@@ -40,9 +48,9 @@ class ErrCountAggregator(RawAbstractAggregator):
 
     def aggregate(self, host_name, timeperiod):
         config.loadConfigs()
+
         def send_juggler(msg):
-            print host_name, msg
-            return
+            self.logger.debug("%s, %s" % (host_name, msg))
             status = {0 : "OK", 1 : "WARN", 2 : "CRIT"}
             st, dsc = msg
             st = status[st]
@@ -81,6 +89,7 @@ class ErrCountAggregator(RawAbstractAggregator):
                 juggler_msg = (2, msg)
 
             if errors:
+                # TODO
                 #send to dashboard
                 pass
 
