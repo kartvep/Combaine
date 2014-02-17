@@ -42,7 +42,6 @@ class ParsingConfigurator(object):
                 "quant" : "QuantAggregator",
                 "average" : "AverageAggregator",
                 "uniq" : "UniqAggregator",
-                "err" : "ErrCountAggregator",
             }
             self.aggregators = []
             self.resulthadlers = list()
@@ -57,7 +56,7 @@ class ParsingConfigurator(object):
                     if dic["type"] == "quant":
                         tmp["values"] = dic["values"]
 
-                    tmp["type"] = agg_bind.get(dic["type"])  #DIRTY  HOOK!!!!!!!
+                    tmp["type"] = agg_bind.get(dic["type"], dic["type"])  #DIRTY  HOOK!!!!!!!
                     if not tmp["type"] is None:
                         self.aggregators.append(tmp)
 
