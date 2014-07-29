@@ -33,6 +33,9 @@ class GrSenderClient(AbstractSender):
         return [res for res in data if res.aggname in self.items]
 
     def send(self, data):
+        #ugly hack to correct graphite metric names
+        rps_check = lambda x: x.startswith('maps_') and x.endswith('_rps')
+
         data = self.data_filter(data)
         for_send = collections.defaultdict(list)
         for aggres in data:
@@ -61,7 +64,8 @@ class GrSenderClient(AbstractSender):
                           ]
             base_metric = '.'.join(filter(lambda x: x != None, base_metric))
             for graph, point in val:
-                metric = '.'.join([base_metric, graph])
+                tail = 'rps' if rps_check(graph) else graph
+                metric = '.'.join([base_metric, tail])
                 message = ' '.join([metric, str(point), str(time)])
                 messages.append(message)
 
