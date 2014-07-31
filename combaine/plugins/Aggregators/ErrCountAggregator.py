@@ -20,7 +20,7 @@ class ErrCountAggregator(RawAbstractAggregator):
         self.q_dict = {"http_host": config["request"]["http_host_field"],
                       "geturl" : "SUBSTRING_INDEX(%s, '?', 1)" % config["request"]["geturl_field"]}
         self.q_host_url = "%(http_host)s, %(geturl)s" % self_q_dict
-        self.q_head = "SELECT %s, COUNT(*) from %TABLENAME%" % self.q_host_url
+        self.q_head = "SELECT %s, COUNT(*) from %%TABLENAME%%" % self.q_host_url
         self.q_tail = "GROUP BY %s" % self.q_host_url
 
         mk_q_dict = lambda x: x.update(self.q_dict) or x
