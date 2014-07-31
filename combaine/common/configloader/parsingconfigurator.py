@@ -42,6 +42,7 @@ class ParsingConfigurator(object):
                 "quant" : "QuantAggregator",
                 "average" : "AverageAggregator",
                 "uniq" : "UniqAggregator",
+                "err" : "ErrCounterAggregator",
             }
             self.aggregators = []
             self.resulthadlers = list()
