@@ -65,8 +65,8 @@ class ErrCountAggregator(RawAbstractAggregator):
                                        "-n", self.check_name,
                                        "-d", msg.txt,
                                       ])
-           except subprocess.CalledProcessError, e:
-               self.logger.error("send_jugler failed: %s -> %s" % (e.cmd, e.output))
+            except subprocess.CalledProcessError, e:
+                self.logger.error("send_jugler failed: %s -> %s" % (e.cmd, e.output))
 
         class Msg:
             def __init__(self, state=0, txt="Ok"):
