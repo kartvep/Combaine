@@ -6,9 +6,10 @@ from combaine.common.loggers import CommonLogger
 from collections import defaultdict
 
 import sys
-sys.path.append('/usr/lib')
-from jclient import config
-from jclient import jobs
+import subprocess
+#sys.path.append('/usr/lib')
+#from jclient import config
+#from jclient import jobs
 
 class ErrCountAggregator(RawAbstractAggregator):
 
@@ -50,18 +51,41 @@ class ErrCountAggregator(RawAbstractAggregator):
         config.loadConfigs()
 
         def send_juggler(msg):
-            self.logger.debug("%s, %s" % (host_name, msg))
-            status = {0 : "OK", 1 : "WARN", 2 : "CRIT"}
-            st, dsc = msg
-            st = status[st]
-            self.logger.debug("%s %s %s %s" % (host_name, self.check_name, st, dsc))
-            if not jobs.addJobs(host_name, self.check_name, st, dsc):
-                self.logger.error("Can't send data to juggler")
+            self.logger.debug("%s, %s:%s" % (host_name, msg.state, msg.tst))
+            #status = {0 : "OK", 1 : "WARN", 2 : "CRIT"}
+            #st, dsc = msg
+            #st = status[st]
+            #self.logger.debug("%s %s %s %s" % (host_name, self.check_name, st, dsc))
+            #if not jobs.addJobs(host_name, self.check_name, st, dsc):
+            #    self.logger.error("Can't send data to juggler")
+            try:
+                subprocess.check_call(["/usr/bin/juggler_queue_event", 
+                                       "--host", host_name,
+                                       "-s", msg.state,
+                                       "-n", self.check_name,
+                                       "-d", msg.txt,
+                                      ])
+           except subprocess.CalledProcessError, e:
+               self.logger.error("send_jugler failed: %s -> %s" % (e.cmd, e.output))
+
+        class Msg:
+            def __init__(self, state=0, txt="Ok"):
+                self.state = state
+                self.txt = txt
+    
+            def add (self, state, txt):
+                if state == self.state:
+                    self.txt += "; %s" % txt
+                elif state > self.state:
+                    self.state = state
+                    self.txt = txt
             
         db = self.dg
         rekey = lambda val: ((val[0],val[1]), val[2]) 
         reqs_all = dict(map(rekey, db.perfomCustomQuery(self._query())))
+        reqs_all["_TOTAL_"] = sum(reqs_all.values())
         reqs_err = dict(map(rekey, db.perfomCustomQuery(self._query(self.check_code))))
+        reqs_err["_TOTAL_"] = sum(reqs_err.values())
         err_prct = ( (handler,
                       total,
                       reqs_err.get(handler, 0), 
@@ -73,20 +97,22 @@ class ErrCountAggregator(RawAbstractAggregator):
         self.logger.debug("%s %s%%" % (host_name, 
                                      float(sum(reqs_err.values())) / sum(reqs_all.values()) * 100))
 
-        juggler_msg = (0, "Ok")
+        juggler_msg = Msg(0, "Ok")
         for handler, requests, errors, percents in err_prct:
             vhost = handler[0]
-            handler = ''.join(handler)
+            handler = "".join(handler)
             max_errs, min_reqs = self.limits.get(vhost, self._limits)
             #print handler, percents, max_errs, requests, min_reqs
             if percents >= max_errs and requests <= min_reqs:
                 #warning
                 msg = "%s - %s%% (%s/%s)" % (handler, percents, errors, requests)
-                juggler_msg = (1, msg) if juggler_msg[0] < 2 else juggler_msg
+                #juggler_msg = (1, msg) if juggler_msg[0] < 2 else juggler_msg
+                juggler_msg.add(1, msg)
             elif percents >= max_errs and requests > min_reqs:
                 #critical
                 msg = "%s - %s%% (%s/%s)" % (handler, percents, errors, requests)
-                juggler_msg = (2, msg)
+                #juggler_msg = (2, msg)
+                juggler_msg.add(2, msg)
 
             if errors:
                 # TODO
