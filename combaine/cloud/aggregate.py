@@ -84,21 +84,21 @@ def Main(groupname, config_name, agg_config_name, previous_time, current_time):
 
     logger.info("Hadling data by result handlers")
     handler_results = list()
-    try:
-        for _res_handler in res_handlers:
+    for _res_handler in res_handlers:
+        try:
             handler_result = HandlerRes(_res_handler.name, hosts.keys(), conf.metahost or groupname, agg_config_name)
             handler_result.store_result(_res_handler.handle(res), previous_time)
             handler_results.append(handler_result)
-    except Exception as err:
-        logger.error(err)
+        except Exception as err:
+            logger.error(err)
     res.extend(handler_results)
 
     logger.info("Hadling data by senders")
-    try:
-        for _res_sender in res_senders:
+    for _res_sender in res_senders:
+        try:
             _res_sender.send(res) 
-    except Exception as err:
-        logger.error(err)
+        except Exception as err:
+            logger.error(err)
 
     ds.close()
     logger.info("Aggregation has finished successfully")
