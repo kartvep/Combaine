@@ -131,6 +131,7 @@ class ErrCountAggregator(RawAbstractAggregator):
    
     def aggregate_group(self, data):
         #raise StopIteration
-        yield {}
+        for i in self._unpack(data):
+            yield {}
 
 PLUGIN_CLASS = ErrCountAggregator
