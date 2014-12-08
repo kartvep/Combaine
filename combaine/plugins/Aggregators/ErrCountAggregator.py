@@ -122,6 +122,7 @@ class ErrCountAggregator(RawAbstractAggregator):
                 pass
 
         send_juggler(juggler_msg)
+        return self.name, self._pack(None)
 
     def _pack(self, data):
         return []
