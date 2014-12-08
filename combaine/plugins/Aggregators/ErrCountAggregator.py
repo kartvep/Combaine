@@ -124,12 +124,13 @@ class ErrCountAggregator(RawAbstractAggregator):
         send_juggler(juggler_msg)
 
     def _pack(self, data):
-        pass
+        return []
 
     def _unpack(self, data):
-        pass
+        return []
    
     def aggregate_group(self, data):
-        raise StopIteration
+        #raise StopIteration
+        yield {}
 
 PLUGIN_CLASS = ErrCountAggregator
