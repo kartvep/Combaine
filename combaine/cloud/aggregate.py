@@ -83,15 +83,15 @@ def Main(groupname, config_name, agg_config_name, previous_time, current_time):
             res.append(one_agg_result)
 
     logger.info("Hadling data by result handlers")
-    handler_results = list()
+    #handler_results = list()
     for _res_handler in res_handlers:
         try:
             handler_result = HandlerRes(_res_handler.name, hosts.keys(), conf.metahost or groupname, agg_config_name)
             handler_result.store_result(_res_handler.handle(res), previous_time)
-            handler_results.append(handler_result)
+            #handler_results.append(handler_result)
+            res.extend(handler_result)
         except Exception as err:
             logger.error(err)
-    res.extend(handler_results)
 
     logger.info("Hadling data by senders")
     for _res_sender in res_senders:
