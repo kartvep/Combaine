@@ -48,10 +48,10 @@ class ErrCountAggregator(RawAbstractAggregator):
         return self.table_regex.sub(self.dg.tablename, q)
 
     def aggregate(self, host_name, timeperiod):
-        config.loadConfigs()
+        #config.loadConfigs()
 
         def send_juggler(msg):
-            self.logger.debug("%s, %s:%s" % (host_name, msg.state, msg.tst))
+            self.logger.debug("%s, %s:%s" % (host_name, msg.state, msg.txt))
             #status = {0 : "OK", 1 : "WARN", 2 : "CRIT"}
             #st, dsc = msg
             #st = status[st]
@@ -61,10 +61,12 @@ class ErrCountAggregator(RawAbstractAggregator):
             try:
                 subprocess.check_call(["/usr/bin/juggler_queue_event", 
                                        "--host", host_name,
-                                       "-s", msg.state,
+                                       "-s", str(msg.state),
                                        "-n", self.check_name,
                                        "-d", msg.txt,
                                       ])
+                self.logger.info("send_jugler: juggler_queue_event --host %s -s %s -n %s -d %s" % \
+                                 (host_name, str(msg.state), self.check_name, msg.txt))
             except subprocess.CalledProcessError, e:
                 self.logger.error("send_jugler failed: %s -> %s" % (e.cmd, e.output))
 
