@@ -36,6 +36,7 @@ class ErrCountAggregator(RawAbstractAggregator):
         self.limits = dict([ (key, tuple(val)) for key, val in config["limits"].items() ])
 
     def _query(self, code=None):
+        '''Renders SQL queries.'''
         q = [self.q_head]
         if code or self.q_blacklist:
             q.append("WHERE")
@@ -48,6 +49,7 @@ class ErrCountAggregator(RawAbstractAggregator):
         return self.table_regex.sub(self.dg.tablename, q)
 
     def aggregate(self, host_name, timeperiod):
+        '''Doing the work.'''
         #config.loadConfigs()
 
         def send_juggler(msg):
@@ -71,6 +73,8 @@ class ErrCountAggregator(RawAbstractAggregator):
                 self.logger.error("send_jugler failed: %s -> %s" % (e.cmd, e.output))
 
         class Msg:
+            '''Juggler message class.
+               Contains the most critical data was stored. Drops less critical records'''
             def __init__(self, state=0, txt="Ok"):
                 self.state = state
                 self.txt = txt
@@ -108,12 +112,10 @@ class ErrCountAggregator(RawAbstractAggregator):
             if percents >= max_errs and requests <= min_reqs:
                 #warning
                 msg = "%s - %s%% (%s/%s)" % (handler, percents, errors, requests)
-                #juggler_msg = (1, msg) if juggler_msg[0] < 2 else juggler_msg
                 juggler_msg.add(1, msg)
             elif percents >= max_errs and requests > min_reqs:
                 #critical
                 msg = "%s - %s%% (%s/%s)" % (handler, percents, errors, requests)
-                #juggler_msg = (2, msg)
                 juggler_msg.add(2, msg)
 
             if errors:
@@ -122,17 +124,20 @@ class ErrCountAggregator(RawAbstractAggregator):
                 pass
 
         send_juggler(juggler_msg)
-        return self.name, self._pack(None)
 
-    def _pack(self, data):
-        return []
+        #Just stub
+        return self.name, self._pack(None, timeperiod[0])
+
+    def _pack(self, data, time):
+        '''Just stub'''
+        return {'time':time, 'res':list(data)}
 
     def _unpack(self, data):
-        return []
+        '''Just stub'''
+        return None, None
    
     def aggregate_group(self, data):
-        #raise StopIteration
-        for i in self._unpack(data):
-            yield {}
+        '''Just stub'''
+        raise StopIteration
 
 PLUGIN_CLASS = ErrCountAggregator
