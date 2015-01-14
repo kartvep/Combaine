@@ -7,9 +7,6 @@ from collections import defaultdict
 
 import sys
 from subprocess import Popen, PIPE
-#sys.path.append('/usr/lib')
-#from jclient import config
-#from jclient import jobs
 
 class ErrCountAggregator(RawAbstractAggregator):
 
@@ -50,7 +47,6 @@ class ErrCountAggregator(RawAbstractAggregator):
 
     def aggregate(self, host_name, timeperiod):
         '''Doing the work.'''
-        #config.loadConfigs()
 
         def send_juggler(msg):
             self.logger.debug("%s, %s:%s" % (host_name, msg.state, msg.txt))
@@ -67,7 +63,6 @@ class ErrCountAggregator(RawAbstractAggregator):
                 self.logger.error("send_jugler failed: %s -> %s" % (p.returncode, output))
             else:
                 self.logger.info("sucessfully sent to juggler")
-
 
         class Msg:
             '''Juggler message class.
