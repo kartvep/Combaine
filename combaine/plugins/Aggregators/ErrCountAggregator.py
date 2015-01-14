@@ -123,7 +123,7 @@ class ErrCountAggregator(RawAbstractAggregator):
 
     def _pack(self, data, time):
         '''Just stub'''
-        return {'time':time, 'res':list(data)}
+        return {'time':time, 'res':[]}
 
     def _unpack(self, data):
         '''Just stub'''
