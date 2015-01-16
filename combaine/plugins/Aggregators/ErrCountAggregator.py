@@ -50,7 +50,7 @@ class ErrCountAggregator(RawAbstractAggregator):
 
         def send_juggler(msg):
             self.logger.debug("%s, %s:%s" % (host_name, msg.state, msg.txt))
-            p = Popen(["/usr/bin/juggler_queue_event",
+            p = Popen(["sudo", "/usr/bin/juggler_queue_event",
                                    "--host", host_name,
                                    "-s", str(msg.state),
                                    "-n", self.check_name,
