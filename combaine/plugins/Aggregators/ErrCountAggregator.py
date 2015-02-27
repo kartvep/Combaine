@@ -104,8 +104,9 @@ class ErrCountAggregator(RawAbstractAggregator):
 
             if percents >= max_errs and requests <= min_reqs:
                 #warning
-                msg = "%s - %s%% (%s/%s)" % (handler, percents, errors, requests)
-                juggler_msg.add(1, msg)
+                #msg = "%s - %s%% (%s/%s)" % (handler, percents, errors, requests)
+                #juggler_msg.add(1, msg)
+                pass
             elif percents >= max_errs and requests > min_reqs:
                 #critical
                 msg = "%s - %s%% (%s/%s)" % (handler, percents, errors, requests)
