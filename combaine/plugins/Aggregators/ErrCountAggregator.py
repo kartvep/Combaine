@@ -17,8 +17,11 @@ class ErrCountAggregator(RawAbstractAggregator):
 
         self.q_dict = {"http_host": config["request"]["http_host_field"],
                       "geturl" : "SUBSTRING_INDEX(%s, '?', 1)" % config["request"]["geturl_field"]}
+        # http_host, SUBSTRING_INDEX(geturl, '?', 1)
         self.q_host_url = "%(http_host)s, %(geturl)s" % self.q_dict
+        # SELECT http_host, SUBSTRING_INDEX(geturl, '?', 1), COUNT(*) from %%TABLENAME%%
         self.q_head = "SELECT %s, COUNT(*) from %%TABLENAME%%" % self.q_host_url
+        # GROUP BY http_host, SUBSTRING_INDEX(geturl, '?', 1)
         self.q_tail = "GROUP BY %s" % self.q_host_url
 
         mk_q_dict = lambda x: x.update(self.q_dict) or x
@@ -31,9 +34,11 @@ class ErrCountAggregator(RawAbstractAggregator):
         self.check_code = tuple(config["monitoring"]["code"]) 
         self._limits = tuple(config["limits"].pop("default"))
         self.limits = dict([ (key, tuple(val)) for key, val in config["limits"].items() ])
+        self.limit_keys = sorted(self.limits.keys(), key=len, reverse=True)
 
     def _query(self, code=None):
         '''Renders SQL queries.'''
+        # SELECT http_host, SUBSTRING_INDEX(geturl, '?', 1), COUNT(*) from %%TABLENAME%% WHERE ... GROUP BY http_host, SUBSTRING_INDEX(geturl, '?', 1)
         q = [self.q_head]
         if code or self.q_blacklist:
             q.append("WHERE")
@@ -98,9 +103,12 @@ class ErrCountAggregator(RawAbstractAggregator):
         juggler_msg = Msg(0, "Ok")
 
         for handler, requests, errors, percents in err_prct:
-            vhost = handler[0]
+            #vhost = handler[0]
             handler = "".join(handler)
-            max_errs, min_reqs = self.limits.get(vhost, self._limits)
+            #max_errs, min_reqs = self.limits.get(vhost, self._limits)
+            max_errs, min_reqs = next((self.limits[i] for i in self.limit_keys
+                                           if handler.startswith(i)), self._limits)
+            self.logger.debug("Limits: %s - %d%% min %d reqs" % (handler, max_errs, min_reqs))
 
             if percents >= max_errs and requests <= min_reqs:
                 #warning
