@@ -97,8 +97,8 @@ class ErrCountAggregator(RawAbstractAggregator):
                              1)
                      ) for handler, total in reqs_all.items() )
 
-        self.logger.debug("%s %s%%" % (host_name, 
-                                     float(sum(reqs_err.values())) / sum(reqs_all.values()) * 100))
+        #self.logger.debug("%s %s%%" % (host_name, 
+        #                             float(sum(reqs_err.values())) / sum(reqs_all.values()) * 100))
 
         juggler_msg = Msg(0, "Ok")
 
