@@ -24,6 +24,9 @@ class ErrCountAggregator(RawAbstractAggregator):
         # GROUP BY http_host, SUBSTRING_INDEX(geturl, '?', 1)
         self.q_tail = "GROUP BY %s" % self.q_host_url
 
+        # some custom clauseaes appended to the end of WHERE statement
+        self.custom_sql = config.get('sql', False)
+
         mk_q_dict = lambda x: x.update(self.q_dict) or x
         self.q_blacklist = " and ".join(["%(http_host)s != '%(i)s' and %(geturl)s != '%(i)s'" % 
                                          mk_q_dict({'i': i})
@@ -40,11 +43,12 @@ class ErrCountAggregator(RawAbstractAggregator):
         '''Renders SQL queries.'''
         # SELECT http_host, SUBSTRING_INDEX(geturl, '?', 1), COUNT(*) from %%TABLENAME%% WHERE ... GROUP BY http_host, SUBSTRING_INDEX(geturl, '?', 1)
         q = [self.q_head]
-        if code or self.q_blacklist:
+        if code or self.q_blacklist or self.custom_sql:
             q.append("WHERE")
             if code: q.append("http_status >= %s and http_status < %s" % code)
             if code and self.q_blacklist: q.append("and")
             if self.q_blacklist: q.append(self.q_blacklist)
+            if self.custom_sql: q.append(self.custom_sql)
 
         q.append(self.q_tail)
         q = " ".join(q)
