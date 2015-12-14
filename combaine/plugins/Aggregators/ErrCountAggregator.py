@@ -25,7 +25,7 @@ class ErrCountAggregator(RawAbstractAggregator):
         self.q_tail = "GROUP BY %s" % self.q_host_url
 
         # some custom clauseaes appended to the end of WHERE statement
-        self.custom_sql = config.get('sql', False)
+        self.q_custom = config.get('sql', None)
 
         mk_q_dict = lambda x: x.update(self.q_dict) or x
         self.q_blacklist = " and ".join(["%(http_host)s != '%(i)s' and %(geturl)s != '%(i)s'" % 
@@ -34,21 +34,28 @@ class ErrCountAggregator(RawAbstractAggregator):
         # name of juggler event
         self.check_name = config["monitoring"]["name"] 
         # response code >= low and < high
-        self.check_code = tuple(config["monitoring"]["code"]) 
+        self.check_code = tuple(config["monitoring"]get("code",[])) 
         self._limits = tuple(config["limits"].pop("default"))
         self.limits = dict([ (key, tuple(val)) for key, val in config["limits"].items() ])
         self.limit_keys = sorted(self.limits.keys(), key=len, reverse=True)
 
     def _query(self, code=None):
         '''Renders SQL queries.'''
+        q_code = "http_status >= %s and http_status < %s" % code if code else ''
         # SELECT http_host, SUBSTRING_INDEX(geturl, '?', 1), COUNT(*) from %%TABLENAME%% WHERE ... GROUP BY http_host, SUBSTRING_INDEX(geturl, '?', 1)
         q = [self.q_head]
-        if code or self.q_blacklist or self.custom_sql:
-            q.append("WHERE")
-            if code: q.append("http_status >= %s and http_status < %s" % code)
-            if code and self.q_blacklist: q.append("and")
-            if self.q_blacklist: q.append(self.q_blacklist)
-            if self.custom_sql: q.append(self.custom_sql)
+        # filter request parts with meaningfull values and compose query
+        q_where = ' and '.join(
+            filter(None, [q_code, self.q_blacklist, self.q_custom])
+        )
+        if q_where:
+            q.append("WHERE %s" % q_where)
+        #if code or self.q_blacklist or self.q_custom:
+        #    q.append("WHERE")
+        #    if code: q.append("http_status >= %s and http_status < %s" % code)
+        #    if code and self.q_blacklist: q.append("and")
+        #    if self.q_blacklist: q.append(self.q_blacklist)
+        #    if self.q_custom: q.append(self.q_custom)
 
         q.append(self.q_tail)
         q = " ".join(q)
