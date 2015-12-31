@@ -75,6 +75,8 @@ class ErrCountAggregator(RawAbstractAggregator):
                       stderr = PIPE, stdout = PIPE)
             output = '; '.join(p.communicate()).replace('\n', '\\n')
  
+            self.logger.info("Event %s: %s; %s" % (self.check_name, msg.state, msg.txt))
+
             if p.returncode != 0:
                 self.logger.error("send_jugler failed: %s -> %s" % (p.returncode, output))
             else:
