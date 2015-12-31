@@ -34,7 +34,7 @@ class ErrCountAggregator(RawAbstractAggregator):
         # name of juggler event
         self.check_name = config["monitoring"]["name"] 
         # response code >= low and < high
-        self.check_code = tuple(config["monitoring"]get("code",[])) 
+        self.check_code = tuple(config["monitoring"].get("code",[])) 
         self._limits = tuple(config["limits"].pop("default"))
         self.limits = dict([ (key, tuple(val)) for key, val in config["limits"].items() ])
         self.limit_keys = sorted(self.limits.keys(), key=len, reverse=True)
@@ -106,7 +106,7 @@ class ErrCountAggregator(RawAbstractAggregator):
                       round(
                              float(reqs_err.get(handler, 0)) / total * 100,
                              1)
-                     ) for handler, total in reqs_all.items() )
+                     ) for handler, total in reqs_all.items() if total != 0 )
 
         #self.logger.debug("%s %s%%" % (host_name, 
         #                             float(sum(reqs_err.values())) / sum(reqs_all.values()) * 100))
