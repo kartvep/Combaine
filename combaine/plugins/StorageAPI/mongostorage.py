@@ -15,7 +15,7 @@ class MongoStorage(BaseStorage):
         def __connect(hosts):
             connected = False
             try:
-                self.mongo_client = pymongo.Connection(hosts)
+                self.mongo_client = pymongo.MongoClient(hosts)
             except pymongo.errors.ConnectionFailure, err:
                 print err
                 return False

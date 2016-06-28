@@ -15,16 +15,17 @@ class MongoReplicaSet(AbstractDistributedStorage):
 
     def connect(self, namespace):
         try:
-            self.rs = pymongo.Connection(self.hosts, fsync=True)
+#            self.rs = pymongo.Connection(self.hosts, fsync=True)
+            self.rs = pymongo.MongoClient(self.hosts, fsync=False)
             db, collection = namespace.split('/')
             self.coll_name = collection
             self.db = self.rs[db]
             if collection in self.db.collection_names():
                 if not self.db[collection].options().get("capped"):
                     self.db.drop_collection(collection)
-                    self.db.create_collection(collection, capped=True, size=500000000, max=100000)
+                    self.db.create_collection(collection, capped=True, size=50000000, max=10000)
             else:
-                self.db.create_collection(collection, capped=True, size=500000000, max=100000)
+                self.db.create_collection(collection, capped=True, size=50000000, max=10000)
             self.db_cursor = self.db[collection]
             self.db_cursor.ensure_index("_id")
         except Exception, err:
@@ -49,7 +50,8 @@ class MongoReplicaSet(AbstractDistributedStorage):
             print data
             value = {"_id" : _id, "key" : key, "value" : data, "time" : int(time.time()) }
             #print self.db_cursor.insert(value, continue_on_error=True, w=0, manipulate=False)
-            print self.db_cursor.save(value, continue_on_error=True, w=1, manipulate=False)
+#            print self.db_cursor.save(value, continue_on_error=True, w=1, manipulate=False)
+            print self.db_cursor.save(value, w=1)
         except Exception, err:
             print str(err)
             return False
@@ -59,7 +61,8 @@ class MongoReplicaSet(AbstractDistributedStorage):
     def read(self, key, cache=False):
         try:
             _id = hashlib.md5(key).hexdigest()
-            ret = self.db_cursor.find_one({"_id" : _id }, fields={"key" : False, "_id" : False, "time" : False})
+            ret = self.db_cursor.find_one({"_id" : _id })
+            #ret = self.db_cursor.find_one({"_id" : _id }), fields={"key" : False, "_id" : False, "time" : False})
             if ret is not None:
                 if cache:
                     self.cache_key_list.append(key)

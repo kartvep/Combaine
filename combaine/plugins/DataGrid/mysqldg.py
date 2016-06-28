@@ -62,6 +62,16 @@ class MySqlDG(AbstractDataGrid):
                                                                                                             'tablename': tablename  }
             self.cursor.execute(query)
             self.db.commit()
+	    query = "ALTER TABLE %(tablename)s ADD INDEX http_host (http_host)" % { 'tablename': tablename }
+            self.cursor.execute(query)
+            self.db.commit()
+	    query = "ALTER TABLE %s  ADD INDEX http_status (http_status)" % tablename
+            self.cursor.execute(query)
+            self.db.commit()
+	    query = "ALTER TABLE %s  ADD INDEX geturl (geturl(10))" % tablename
+            self.cursor.execute(query)
+            self.db.commit()
+
             if os.path.isfile(table_file.name):
                 os.remove(table_file.name)
         except Exception as err:
