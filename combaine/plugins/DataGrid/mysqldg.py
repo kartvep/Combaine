@@ -45,6 +45,17 @@ class MySqlDG(AbstractDataGrid):
                     self.logger.warning("Data for mysql is missed")
                     os.remove(table_file.name)
                     return False
+                else:
+                    columns = line.keys()
+                    indexes = { ('http_status',): '',
+                                ('http_host',): '',
+                                ('geturl',): 'geturl(10)',
+                                ('http_host', 'http_status'): '',
+                                ('http_host', 'http_status', 'geturl'): 'http_host, http_status, geturl(10)',
+                                ('ssl_session_id',): '',
+                                ('request_time',): '',
+                                ('upstream_response_time',): '',
+                               }
 
                 self.logger.debug('Data written to a temporary file %s, size: %d bytes' % (table_file.name, os.lstat(table_file.name).st_size))
 
@@ -62,15 +73,18 @@ class MySqlDG(AbstractDataGrid):
                                                                                                             'tablename': tablename  }
             self.cursor.execute(query)
             self.db.commit()
-	    query = "ALTER TABLE %(tablename)s ADD INDEX http_host (http_host)" % { 'tablename': tablename }
-            self.cursor.execute(query)
-            self.db.commit()
-	    query = "ALTER TABLE %s  ADD INDEX http_status (http_status)" % tablename
-            self.cursor.execute(query)
-            self.db.commit()
-	    query = "ALTER TABLE %s  ADD INDEX geturl (geturl(10))" % tablename
-            self.cursor.execute(query)
-            self.db.commit()
+
+            for flds, indx in indexes.items():
+                add_index = True
+                for fld in flds:
+                    if fld not in columns:
+                        add_index = False
+                if add_index:
+                    if not indx: indx = ', '.join(flds)
+                    inm = '_'.join(flds)
+                    query = 'ALTER TABLE %(tablename)s ADD INDEX %(name)s (%(index)s)' % { 'tablename': tablename, 'name': inm, 'index': indx }
+                    self.cursor.execute(query)
+                    self.db.commit()
 
             if os.path.isfile(table_file.name):
                 os.remove(table_file.name)
