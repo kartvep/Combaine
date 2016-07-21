@@ -1,8 +1,21 @@
-combaine (0.5.2-22) lucid; urgency=low
+combaine (0.5.2-22-errorcounter12) lucid; urgency=low
 
-  * Increase capped collection size
+  * Removed random wait 
 
- -- Anton Tyurin <noxiouz@yandex-team.ru>  Wed, 16 Oct 2013 12:37:35 +0400
+ -- root <kartvep@yandex-team.ru>  Thu, 21 Jul 2016 16:01:36 +0300
+
+combaine (0.5.2-22-errorcounter11) lucid; urgency=low
+
+  * Additional indexes for mysql
+
+ -- root <kartvep@yandex-team.ru>  Thu, 30 Jun 2016 14:57:06 +0300
+
+combaine (0.5.2-22-errorcounter10) lucid; urgency=low
+
+  * improvements by isahrov@: mongodb3 support, indexes on mysql tables
+  * randomized list of parsing configurations
+
+ -- root <kartvep@yandex-team.ru>  Tue, 28 Jun 2016 15:09:50 +0300
 
 combaine (0.5.2-21) lucid; urgency=low
 

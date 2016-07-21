@@ -319,12 +319,12 @@ class Combainer(object):
 
     def getLock(self):
         import random
-        import time
+        #import time
         parsing_confs_randomized = self.parsing_confs[:]
         random.shuffle(parsing_confs_randomized)
         #for config_name in self.parsing_confs:
         for config_name in parsing_confs_randomized:
-            time.sleep(random.randint(0,10)/100.0)
+            #time.sleep(random.randint(0,10)/100.0)
             log.debug('Get the lock %s' % config_name)
             self.lockserver.setLockName(config_name) #strip ext .json
             if self.lockserver.getlock():
