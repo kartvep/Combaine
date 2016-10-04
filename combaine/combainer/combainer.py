@@ -48,8 +48,8 @@ class Combainer(object):
         self.parsing_confs = []
         #-----------------------------------------
         #-----------------------------------------
-        observer_conf = config.get("Observer", {})
-        self.observer = Observer.client.ObserverClient(**observer_conf)
+        #observer_conf = config.get("Observer", {})
+        #self.observer = Observer.client.ObserverClient(**observer_conf)
 
         self.MIN_PERIOD = config.get('MINIMUM_PERIOD', 30)
         self.MAX_PERIOD = config.get('MAXIMUM_PERIOD', self.MIN_PERIOD * 1.5)
@@ -153,7 +153,7 @@ class Combainer(object):
                                                                                      'time' : ';'.join(time_period),
                                                                                      'suff' : '__G__'} )
         #------------------------------------------------------------------------------------
-        self.observer.getCombainerInfo(self.parsing_confs, self.groups_conf.keys())
+        #self.observer.getCombainerInfo(self.parsing_confs, self.groups_conf.keys())
         #------------------------------------------------------------------------------------
         pprint.pprint(self.messages)
         return True
@@ -186,6 +186,7 @@ class Combainer(object):
                     log.warning('Invalid group name: %s' % str(group))
                 else:
                     self.aggrhosts[group] = aggregatehostfile.split('\n')[:-1]
+                    random.shuffle(self.aggrhosts[group])
         except Exception, err:
             log.error('Failed to load hosts %s' % str(err))
             return False
@@ -318,13 +319,13 @@ class Combainer(object):
             return True
 
     def getLock(self):
-        import random
+        #import random
         #import time
         parsing_confs_randomized = self.parsing_confs[:]
         random.shuffle(parsing_confs_randomized)
         #for config_name in self.parsing_confs:
         for config_name in parsing_confs_randomized:
-            #time.sleep(random.randint(0,10)/100.0)
+            time.sleep(random.randint(0,10)/100.0)
             log.debug('Get the lock %s' % config_name)
             self.lockserver.setLockName(config_name) #strip ext .json
             if self.lockserver.getlock():
@@ -484,7 +485,8 @@ class Combainer(object):
             for _msg in msgs:
                 __sendMessagetoCloud(_msg, 'parsing/parsing', 0.8*self.MAX_RESP_WAIT_TIME)
         for resp in self._scheduler.schedule():
-                self.observer.handleAnswer(resp)
+                #self.observer.handleAnswer(resp)
+                pass
         #-------------------------------------------------------
         # START AGGREGATING POINT
         #-------------------------------------------------------
@@ -496,10 +498,11 @@ class Combainer(object):
             for _msg in msgs:
                 __sendMessagetoCloud(_msg, 'aggregate_group/aggregate_group', int(time_period[1]) + self.MAX_RESP_WAIT_TIME - int(time.time()))
         for resp in self._scheduler.schedule():
-                self.observer.handleAnswer(resp)
+                #self.observer.handleAnswer(resp)
+                pass
         if not self.__markFinish(':'.join(time_period)):
             raise Exception
         #----------------------------------------------------------
         # 
         #----------------------------------------------------------
-        self.observer.sendStatistic()
+        #self.observer.sendStatistic()

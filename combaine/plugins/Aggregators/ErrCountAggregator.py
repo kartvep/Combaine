@@ -38,6 +38,7 @@ class ErrCountAggregator(RawAbstractAggregator):
         self._limits = tuple(config["limits"].pop("default"))
         self.limits = dict([ (key, tuple(val)) for key, val in config["limits"].items() ])
         self.limit_keys = sorted(self.limits.keys(), key=len, reverse=True)
+        self.devnull = open('/dev/null', 'w')
 
     def _query(self, code=None):
         '''Renders SQL queries.'''
@@ -66,21 +67,25 @@ class ErrCountAggregator(RawAbstractAggregator):
 
         def send_juggler(msg):
             self.logger.debug("%s, %s:%s" % (host_name, msg.state, msg.txt))
-            p = Popen(["sudo", "/usr/bin/juggler_queue_event",
-                                   "--host", host_name,
-                                   "-s", str(msg.state),
-                                   "-n", self.check_name,
-                                   "-d", msg.txt,
-                                  ],
-                      stderr = PIPE, stdout = PIPE)
-            output = '; '.join(p.communicate()).replace('\n', '\\n')
- 
-            self.logger.info("Event %s: %s; %s" % (self.check_name, msg.state, msg.txt))
-
-            if p.returncode != 0:
-                self.logger.error("send_jugler failed: %s -> %s" % (p.returncode, output))
+            try:
+                p = Popen(["sudo", "/usr/bin/juggler_queue_event",
+                                       "--host", host_name,
+                                       "-s", str(msg.state),
+                                       "-n", self.check_name,
+                                       "-d", msg.txt,
+                                      ],
+                          stderr = self.devnull, stdout = self.devnull)
+            except Exception as e:
+                self.logger.error("send_jugler failed with exception: %s" % (e))
             else:
-                self.logger.info("sucessfully sent to juggler")
+                output = 'placeholder' #'; '.join(p.communicate()).replace('\n', '\\n')
+                p.wait()
+                self.logger.info("Event %s: %s; %s" % (self.check_name, msg.state, msg.txt))
+    
+                if p.returncode != 0:
+                    self.logger.error("send_jugler failed: %s -> %s" % (p.returncode, output))
+                else:
+                    self.logger.info("sucessfully sent to juggler")
 
         class Msg:
             '''Juggler message class.

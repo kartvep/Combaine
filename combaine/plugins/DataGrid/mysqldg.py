@@ -49,9 +49,9 @@ class MySqlDG(AbstractDataGrid):
                     columns = line.keys()
                     indexes = { ('http_status',): '',
                                 ('http_host',): '',
-                                ('geturl',): 'geturl(10)',
+                                #('geturl',): 'geturl(10)',
                                 ('http_host', 'http_status'): '',
-                                ('http_host', 'http_status', 'geturl'): 'http_host, http_status, geturl(10)',
+                                #('http_host', 'http_status', 'geturl'): 'http_host, http_status, geturl(10)',
                                 ('ssl_session_id',): '',
                                 ('request_time',): '',
                                 ('upstream_response_time',): '',
@@ -66,6 +66,7 @@ class MySqlDG(AbstractDataGrid):
             self.cursor.execute('DROP TABLE IF EXISTS %s' % tablename)
             query = "CREATE TEMPORARY TABLE IF NOT EXISTS %(tablename)s %(struct)s ENGINE = MEMORY DATA DIRECTORY='/dev/shm/'" % { 'tablename' : tablename,\
                                                                                                         'struct' : self.place }
+            #query = "CREATE TABLE IF NOT EXISTS %(tablename)s %(struct)s ENGINE = MEMORY DATA DIRECTORY='/dev/shm/'" % { 'tablename' : tablename,\
             self.cursor.execute(query)
             self.db.commit()
 

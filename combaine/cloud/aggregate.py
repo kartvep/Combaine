@@ -35,6 +35,9 @@ def split_hosts_by_dc(subgroups):
     return host_dict
 
 def Main(groupname, config_name, agg_config_name, previous_time, current_time):
+    start = time.time()
+    metric = 'geo.maps.maps_combaine.%s.combaine.aggregate' % socket.gethostname().replace('.', '_')
+
     uuid = hashlib.md5("%s%s%s%i%i" %(groupname, config_name, agg_config_name, previous_time, current_time)).hexdigest()[:10]
     logger = AggregateLogger(uuid)
     logger.info("Start aggregation: %s %s %s %i-%i" % (groupname, config_name, agg_config_name, previous_time, current_time))
@@ -102,6 +105,19 @@ def Main(groupname, config_name, agg_config_name, previous_time, current_time):
 
     ds.close()
     logger.info("Aggregation has finished successfully")
+
+    duration = time.time() - start
+
+    try:
+        gr_conn = socket.create_connection(('localhost', 42000), 0.25)
+        gr_conn.sendall('%s %s %s\n' % (metric, duration, int(time.time())))
+        logger.debug('%s sent' % metric)
+    except socket.error as e:
+        logger.error('Error communicating graphite-sender: %s, %s' % (e.errno, e.strerror))
+    else:
+        gr_conn.close()
+
+
     return "Success"
 
 def aggregate_group(io):

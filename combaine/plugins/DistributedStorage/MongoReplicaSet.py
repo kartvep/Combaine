@@ -23,9 +23,9 @@ class MongoReplicaSet(AbstractDistributedStorage):
             if collection in self.db.collection_names():
                 if not self.db[collection].options().get("capped"):
                     self.db.drop_collection(collection)
-                    self.db.create_collection(collection, capped=True, size=50000000, max=10000)
+                    self.db.create_collection(collection, capped=True, size=150000000, max=1000000)
             else:
-                self.db.create_collection(collection, capped=True, size=50000000, max=10000)
+                self.db.create_collection(collection, capped=True, size=150000000, max=1000000)
             self.db_cursor = self.db[collection]
             self.db_cursor.ensure_index("_id")
         except Exception, err:
@@ -51,7 +51,8 @@ class MongoReplicaSet(AbstractDistributedStorage):
             value = {"_id" : _id, "key" : key, "value" : data, "time" : int(time.time()) }
             #print self.db_cursor.insert(value, continue_on_error=True, w=0, manipulate=False)
 #            print self.db_cursor.save(value, continue_on_error=True, w=1, manipulate=False)
-            print self.db_cursor.save(value, w=1)
+            #print self.db_cursor.save(value, w=1)
+            print self.db_cursor.save(value, w=0)
         except Exception, err:
             print str(err)
             return False
@@ -77,7 +78,8 @@ class MongoReplicaSet(AbstractDistributedStorage):
         try:
             return "OK" #for capped
             _id = hashlib.md5(key).hexdigest()
-            return str(self.db_cursor.remove(_id, w=1))
+            #return str(self.db_cursor.remove(_id, w=1))
+            return str(self.db_cursor.remove(_id, w=0))
         except Exception as err:
             print str(err)
             return False
